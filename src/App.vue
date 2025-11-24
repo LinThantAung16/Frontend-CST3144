@@ -66,64 +66,82 @@ onMounted(() => {
 </script>
 
 <template>
-  <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow">
-    <h1 class="text-3xl font-bold text-blue-600">After School Club</h1>
-    <button @click="toggleCheckout" :disabled="cart.length === 0 && !showCart"
-      class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
-      <span v-if="showCart">Back to Lessons</span>
-      <span v-else>
-        <i class="fas fa-shopping-cart mr-2"></i> Cart ({{ cart.length }})
-      </span>
-    </button>
-  </header>
-  <div v-if="!showCart">
-    <div class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
-      <div class="flex-1">
-        <label class="block font-bold mb-1">Search:</label>
-        <input v-model="searchQuery" type="text" placeholder="Subject or Location..." class="border p-2 rounded w-full">
-      </div>
-
-      <div>
-        <label class="block font-bold mb-1">Sort By:</label>
-        <select v-model="sortAttribute" class="border p-2 rounded">
-          <option value="subject">Subject</option>
-          <option value="location">Location</option>
-          <option value="price">Price</option>
-          <option value="spaces">Availability</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block font-bold mb-1">Order:</label>
-        <div class="flex gap-2">
-          <label><input type="radio" value="asc" v-model="sortOrder"> Ascending</label>
-          <label><input type="radio" value="desc" v-model="sortOrder"> Descending</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div v-for="lesson in filteredLessons" :key="lesson.id"
-        class="bg-white p-6 rounded shadow hover:shadow-lg transition">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-gray-500 text-sm">Subject:</p>
-            <h2 class="text-2xl font-bold mb-2">{{ lesson.subject }}</h2>
-          </div>
-          <i :class="lesson.icon" class="text-4xl text-blue-400"></i>
-        </div>
-
-        <p class="text-gray-700"><i class="fas fa-map-marker-alt mr-2"></i> {{ lesson.location }}</p>
-        <p class="text-gray-700 mt-1"><i class="fas fa-tag mr-2"></i> Price: £{{ lesson.price }}</p>
-        <p class="mt-1 font-bold" :class="lesson.spaces > 0 ? 'text-green-600' : 'text-red-600'">
-          Spaces: {{ lesson.spaces }}
-        </p>
-
-        <button @click="addToCart(lesson)" :disabled="lesson.spaces === 0"
-          class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-300 transition">
-          Add to Cart
+  <div class="container mx-auto p-6 bg-gray-100 min-h-screen font-sans">
+    <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow">
+        <h1 class="text-3xl font-bold text-blue-600">After School Club</h1>
+        <button @click="toggleCheckout" :disabled="cart.length === 0 && !showCart"
+            class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
+            <span v-if="showCart">Back to Lessons</span>
+            <span v-else>
+                <i class="fas fa-shopping-cart mr-2"></i> Cart ({{ cart.length }})
+            </span>
         </button>
-      </div>
+    </header>
+    <div v-if="!showCart">
+        <div class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
+            <div class="flex-1">
+                <label class="block font-bold mb-1">Search:</label>
+                <input v-model="searchQuery" type="text" placeholder="Subject or Location..."
+                    class="border p-2 rounded w-full">
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Sort By:</label>
+                <select v-model="sortAttribute" class="border p-2 rounded">
+                    <option value="subject">Subject</option>
+                    <option value="location">Location</option>
+                    <option value="price">Price</option>
+                    <option value="spaces">Availability</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Order:</label>
+                <div class="flex gap-2">
+                    <label><input type="radio" value="asc" v-model="sortOrder"> Ascending</label>
+                    <label><input type="radio" value="desc" v-model="sortOrder"> Descending</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div v-for="lesson in filteredLessons" :key="lesson.id"
+                class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">Subject:</p>
+                        <h2 class="text-2xl font-bold mb-2">{{ lesson.subject }}</h2>
+                    </div>
+                    <i :class="lesson.icon" class="text-4xl text-blue-400"></i>
+                </div>
+
+                <p class="text-gray-700"><i class="fas fa-map-marker-alt mr-2"></i> {{ lesson.location }}</p>
+                <p class="text-gray-700 mt-1"><i class="fas fa-tag mr-2"></i> Price: £{{ lesson.price }}</p>
+                <p class="mt-1 font-bold" :class="lesson.spaces > 0 ? 'text-green-600' : 'text-red-600'">
+                    Spaces: {{ lesson.spaces }}
+                </p>
+
+                <button @click="addToCart(lesson)" :disabled="lesson.spaces === 0"
+                    class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-300 transition">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+    <div v-else class="flex flex-col md:flex-row gap-6">
+      <!-- Cart Items -->
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold mb-4">Your Basket</h2>
+        <div v-if="cart.length === 0" class="text-gray-500">Cart is empty.</div>
+        <div v-for="(item, index) in cart" :key="index" class="bg-white p-4 rounded shadow mb-4 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-lg">{{ item.subject }}</h3>
+            <p class="text-gray-600">{{ item.location }}</p>
+            <p class="font-bold">£{{ item.price }}</p>
+          </div>
+          <button @click="removeFromCart(item, index)" class="text-red-500 hover:text-red-700 underline">Remove</button>
+        </div>
+      </div>
+      </div>
+</div>
 </template>
