@@ -1,10 +1,18 @@
 <script setup>
-import { ref,computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 const lessons = ref([]);
 const sortAttribute = ref("subject");
 const sortOrder = ref("asc");
 const searchQuery = ref("");
-    const fetchLessons = async () => {
+
+const cart = ref([]);
+const showCart = ref(false);
+const toggleCheckout = () => {
+  showCart.value = !showCart.value;
+};
+
+//get lessons data (mocked for now)
+const fetchLessons = async () => {
   try {
     lessons.value = [
       { id: 101, subject: "Math", location: "London", price: 100, spaces: 5, icon: "fas fa-calculator" },
@@ -39,59 +47,83 @@ const filteredLessons = computed(() => {
   return tempLessons;
 });
 
+const addToCart = (lesson) => {
+  if (lesson.spaces > 0) {
+    lesson.spaces--;
+    cart.value.push(lesson);
+  }
+};
+
+const removeFromCart = (cartItem, index) => {
+  cartItem.spaces++;
+  cart.value.splice(index, 1);
+};
+
+
 onMounted(() => {
   fetchLessons();
 });
 </script>
 
 <template>
+  <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow">
+    <h1 class="text-3xl font-bold text-blue-600">After School Club</h1>
+    <button @click="toggleCheckout" :disabled="cart.length === 0 && !showCart"
+      class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
+      <span v-if="showCart">Back to Lessons</span>
+      <span v-else>
+        <i class="fas fa-shopping-cart mr-2"></i> Cart ({{ cart.length }})
+      </span>
+    </button>
+  </header>
+  <div v-if="!showCart">
     <div class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
-        <div class="flex-1">
-          <label class="block font-bold mb-1">Search:</label>
-          <input v-model="searchQuery" type="text" placeholder="Subject or Location..." class="border p-2 rounded w-full">
-        </div>
-    
-        <div>
-          <label class="block font-bold mb-1">Sort By:</label>
-          <select v-model="sortAttribute" class="border p-2 rounded">
-            <option value="subject">Subject</option>
-            <option value="location">Location</option>
-            <option value="price">Price</option>
-            <option value="spaces">Availability</option>
-          </select>
-        </div>
+      <div class="flex-1">
+        <label class="block font-bold mb-1">Search:</label>
+        <input v-model="searchQuery" type="text" placeholder="Subject or Location..." class="border p-2 rounded w-full">
+      </div>
 
-        <div>
-          <label class="block font-bold mb-1">Order:</label>
-          <div class="flex gap-2">
-            <label><input type="radio" value="asc" v-model="sortOrder"> Ascending</label>
-            <label><input type="radio" value="desc" v-model="sortOrder"> Descending</label>
-          </div>
+      <div>
+        <label class="block font-bold mb-1">Sort By:</label>
+        <select v-model="sortAttribute" class="border p-2 rounded">
+          <option value="subject">Subject</option>
+          <option value="location">Location</option>
+          <option value="price">Price</option>
+          <option value="spaces">Availability</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-bold mb-1">Order:</label>
+        <div class="flex gap-2">
+          <label><input type="radio" value="asc" v-model="sortOrder"> Ascending</label>
+          <label><input type="radio" value="desc" v-model="sortOrder"> Descending</label>
         </div>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div v-for="lesson in filteredLessons" :key="lesson.id" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
-          <div class="flex justify-between items-start">
-            <div>
-              <p class="text-gray-500 text-sm">Subject:</p>
-              <h2 class="text-2xl font-bold mb-2">{{ lesson.subject }}</h2>
-            </div>
-            <i :class="lesson.icon" class="text-4xl text-blue-400"></i>
+      <div v-for="lesson in filteredLessons" :key="lesson.id"
+        class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-gray-500 text-sm">Subject:</p>
+            <h2 class="text-2xl font-bold mb-2">{{ lesson.subject }}</h2>
           </div>
-          
-          <p class="text-gray-700"><i class="fas fa-map-marker-alt mr-2"></i> {{ lesson.location }}</p>
-          <p class="text-gray-700 mt-1"><i class="fas fa-tag mr-2"></i> Price: £{{ lesson.price }}</p>
-          <p class="mt-1 font-bold" :class="lesson.spaces > 0 ? 'text-green-600' : 'text-red-600'">
-            Spaces: {{ lesson.spaces }}
-          </p>
-
-          <button 
-             @click="addToCart(lesson)" 
-            :disabled="lesson.spaces === 0"
-            class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-300 transition">
-            Add to Cart
-          </button>
+          <i :class="lesson.icon" class="text-4xl text-blue-400"></i>
         </div>
+
+        <p class="text-gray-700"><i class="fas fa-map-marker-alt mr-2"></i> {{ lesson.location }}</p>
+        <p class="text-gray-700 mt-1"><i class="fas fa-tag mr-2"></i> Price: £{{ lesson.price }}</p>
+        <p class="mt-1 font-bold" :class="lesson.spaces > 0 ? 'text-green-600' : 'text-red-600'">
+          Spaces: {{ lesson.spaces }}
+        </p>
+
+        <button @click="addToCart(lesson)" :disabled="lesson.spaces === 0"
+          class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-300 transition">
+          Add to Cart
+        </button>
       </div>
+    </div>
+  </div>
 </template>
