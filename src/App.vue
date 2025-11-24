@@ -7,6 +7,12 @@ const searchQuery = ref("");
 
 const cart = ref([]);
 const showCart = ref(false);
+
+const checkoutForm = ref({
+  name: "",
+  phone: ""
+});
+
 const toggleCheckout = () => {
   showCart.value = !showCart.value;
 };
@@ -86,6 +92,35 @@ const removeFromCart = (cartItem, index) => {
   cart.value.splice(index, 1);
 };
 
+//Submit order
+const submitOrder = async () => {
+  // 1. Flatten the grouped cart back into a list of IDs
+  const lessonIDs = [];
+  cart.value.forEach(item => {
+    // If quantity is 3, push the ID 3 times
+    for (let i = 0; i < item.quantity; i++) {
+      lessonIDs.push(item.lesson.id);
+    }
+  });
+
+  const newOrder = {
+    name: checkoutForm.value.name,
+    phone: checkoutForm.value.phone,
+    lessonIDs: lessonIDs,
+    spaces: lessonIDs.length
+  };
+
+  try {
+    alert("Order Submitted Successfully!");
+    
+    cart.value = []; // Clear cart
+    checkoutForm.value.name = "";
+    checkoutForm.value.phone = "";
+    
+  } catch (error) {
+    console.error("Error submitting order:", error);
+  }
+};
 
 onMounted(() => {
   fetchLessons();
@@ -195,6 +230,29 @@ onMounted(() => {
             <i class="fas fa-trash"></i>
           </button>
         </div>
+      </div>
+
+        <!-- Checkout Form -->
+      <div class="w-full md:w-1/3 bg-white p-6 rounded shadow h-fit">
+        <h2 class="text-2xl font-bold mb-4">Checkout</h2>
+        
+        <div class="mb-4">
+          <label class="block mb-1">Name:</label>
+          <input v-model="checkoutForm.name" type="text" class="border p-2 rounded w-full">
+        </div>
+        
+        <div class="mb-4">
+          <label class="block mb-1">Phone:</label>
+          <input v-model="checkoutForm.phone" type="text" class="border p-2 rounded w-full">
+        </div>
+
+        <button 
+          @click="submitOrder" 
+          :disabled="cart.length === 0"
+          class="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700 disabled:bg-gray-400 transition">
+          Checkout
+        </button>
+      
       </div>
 
     </div>
