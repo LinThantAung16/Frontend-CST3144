@@ -122,6 +122,13 @@ const submitOrder = async () => {
   }
 };
 
+//name and phone validation
+const isFormValid = computed(() => {
+  const nameRegex = /^[A-Za-z\s]+$/;
+  const phoneRegex = /^[0-9]+$/;
+  return nameRegex.test(checkoutForm.value.name) && phoneRegex.test(checkoutForm.value.phone);
+});
+
 onMounted(() => {
   fetchLessons();
 });
@@ -248,11 +255,14 @@ onMounted(() => {
 
         <button 
           @click="submitOrder" 
-          :disabled="cart.length === 0"
+          :disabled="!isFormValid || cart.length === 0"
           class="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700 disabled:bg-gray-400 transition">
           Checkout
         </button>
-      
+            
+        <p v-if="!isFormValid" class="text-red-500 text-sm mt-2">
+          * Name must be letters only.<br>* Phone must be numbers only.
+        </p>
       </div>
 
     </div>
