@@ -98,27 +98,46 @@ const removeFromCart = (cartItem, index) => {
   cart.value.splice(index, 1);
 };
 
-//Submit order
+//Submit order to back end
 const submitOrder = async () => {
-  // 1. Flatten the grouped cart back into a list of IDs
   const lessonIDs = [];
+  
   cart.value.forEach(item => {
-    // If quantity is 3, push the ID 3 times
     for (let i = 0; i < item.quantity; i++) {
-      lessonIDs.push(item.lesson.id);
+      // FIX IS HERE: Access 'item.lesson.id' instead of 'item.id'
+      lessonIDs.push(item.lesson.id); 
     }
   });
 
   const newOrder = {
     name: checkoutForm.value.name,
     phone: checkoutForm.value.phone,
-    lessonIDs: lessonIDs,
-    spaces: lessonIDs.length
+    lessonIDs: lessonIDs, // Use the flattened array
+    spaces: lessonIDs.length // Use the total count of seats, not just unique items
   };
 
+  console.log("Submitting Order Payload:", newOrder);
   try {
-    alert("Order Submitted Successfully!");
+    // UNCOMMENT when Node.js server is ready
     
+    await fetch(`${serverURL}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder)
+    });
+
+    // Update spaces for each lesson (PUT request) [cite: 436]
+    for (const item of cart.value) {
+       await fetch(`${serverURL}/lessons/${item.lesson.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spaces: item.lesson.spaces }) 
+       });
+    }
+  
+
+    alert("Order Submitted Successfully!");
+    // orderSubmitted.value = true;
     cart.value = []; // Clear cart
     checkoutForm.value.name = "";
     checkoutForm.value.phone = "";
