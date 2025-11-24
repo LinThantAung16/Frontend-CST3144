@@ -1,6 +1,9 @@
 <script setup>
-    import { ref, onMounted } from 'vue';
-    const lessons = ref([]);
+import { ref,computed, onMounted } from 'vue';
+const lessons = ref([]);
+const sortAttribute = ref("subject");
+const sortOrder = ref("asc");
+const searchQuery = ref("");
     const fetchLessons = async () => {
   try {
     lessons.value = [
@@ -15,14 +18,60 @@
     console.error("Error fetching lessons:", error);
   }
 };
+
+// Search and Sort Logic
+const filteredLessons = computed(() => {
+  let tempLessons = lessons.value.filter((lesson) => {
+    return (
+      lesson.subject.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      lesson.location.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  });
+
+  tempLessons = tempLessons.sort((a, b) => {
+    if (sortOrder.value === "asc") {
+      return a[sortAttribute.value] > b[sortAttribute.value] ? 1 : -1;
+    } else {
+      return a[sortAttribute.value] < b[sortAttribute.value] ? 1 : -1;
+    }
+  });
+
+  return tempLessons;
+});
+
 onMounted(() => {
   fetchLessons();
 });
 </script>
 
 <template>
+    <div class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
+        <div class="flex-1">
+          <label class="block font-bold mb-1">Search:</label>
+          <input v-model="searchQuery" type="text" placeholder="Subject or Location..." class="border p-2 rounded w-full">
+        </div>
+    
+        <div>
+          <label class="block font-bold mb-1">Sort By:</label>
+          <select v-model="sortAttribute" class="border p-2 rounded">
+            <option value="subject">Subject</option>
+            <option value="location">Location</option>
+            <option value="price">Price</option>
+            <option value="spaces">Availability</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">Order:</label>
+          <div class="flex gap-2">
+            <label><input type="radio" value="asc" v-model="sortOrder"> Ascending</label>
+            <label><input type="radio" value="desc" v-model="sortOrder"> Descending</label>
+          </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div v-for="lesson in lessons" :key="lesson.id" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+        <div v-for="lesson in filteredLessons" :key="lesson.id" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
           <div class="flex justify-between items-start">
             <div>
               <p class="text-gray-500 text-sm">Subject:</p>
@@ -38,6 +87,8 @@ onMounted(() => {
           </p>
 
           <button 
+             @click="addToCart(lesson)" 
+            :disabled="lesson.spaces === 0"
             class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-300 transition">
             Add to Cart
           </button>
