@@ -61,6 +61,26 @@ const addToCart = (lesson) => {
   }
 };
 
+//Increase Qty in Cart
+const increaseCartQuantity = (item) => {
+  
+  if (item.lesson.spaces > 0) {
+    item.quantity++;
+    item.lesson.spaces--;
+  }
+};
+
+//Decrease Qty in Cart
+const decreaseCartQuantity = (item, index) => {
+  item.quantity--;
+  item.lesson.spaces++;
+
+  // If quantity drops to 0, remove item from cart
+  if (item.quantity <= 0) {
+    cart.value.splice(index, 1);
+  }
+};
+
 const removeFromCart = (cartItem, index) => {
   cartItem.lesson.spaces += cartItem.quantity;
   cart.value.splice(index, 1);
@@ -147,15 +167,32 @@ onMounted(() => {
             <p class="text-gray-600">{{ item.lesson.location }}</p>
             <p class="font-bold">£{{ item.lesson.price }}</p>
           </div>
-          <div class="flex items-center gap-2 mr-6">
-            <span class="text-sm text-gray-500">Spaces:</span>
-            <span class="font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded">
-              {{ item.quantity }}
+           <!--Quantity Controls -->
+          <div class="flex items-center gap-2 mr-6 border rounded p-1">
+            <!-- Decrease Button -->
+            <button 
+              @click="decreaseCartQuantity(item, index)" 
+              class="px-2 text-gray-600 hover:bg-gray-200 rounded">
+              <i class="fas fa-minus text-sm"></i>
+            </button>
+            
+            <!-- Number Display -->
+            <span class="font-bold px-2">
+               Space : {{ item.quantity }}
             </span>
+            
+            <!-- Increase Button -->
+            <button 
+              @click="increaseCartQuantity(item)" 
+              :disabled="item.lesson.spaces === 0"
+              class="px-2 text-gray-600 hover:bg-gray-200 rounded disabled:opacity-30">
+              <i class="fas fa-plus text-sm"></i>
+            </button>
           </div>
 
-          <button @click="removeFromCart(item, index)" class="text-red-500 hover:text-red-700 underline">
-            Remove
+          <!-- Remove Button -->
+          <button @click="removeFromCart(item, index)" class="text-red-500 hover:text-red-700 p-2">
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
