@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-const serverURL = "http://localhost:3001";
+const serverURL = "https://cst3144-backend-drwa.onrender.com";
 const lessons = ref([]);
 const sortAttribute = ref("subject");
 const sortOrder = ref("asc");
