@@ -310,7 +310,7 @@ onMounted(() => {
           <input v-model="checkoutForm.phone" type="text" class="w-full border-4 border-black p-3 rounded-lg focus:outline-none focus:ring-4 focus:ring-white">
         </div>
         <button 
-          @click="submitOrder1" 
+          @click="submitOrder" 
           :disabled="!isFormValid || cart.length === 0"
           class="w-full bg-black text-white py-4 rounded-lg font-black text-xl hover:bg-gray-800 disabled:bg-gray-500 border-4 border-white transition-all">
           PLACE ORDER
