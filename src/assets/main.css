@@ -1,18 +1,4 @@
  body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-        }
-        /* Vue transition for list items */
-        .list-move,
-        .list-enter-active,
-        .list-leave-active {
-            transition: all 0.5s ease;
-        }
-        .list-enter-from,
-        .list-leave-to {
-            opacity: 0;
-            transform: translateX(30px);
-        }
-        .list-leave-active {
-            position: absolute;
+            background-color: #87CEEB;
         }
