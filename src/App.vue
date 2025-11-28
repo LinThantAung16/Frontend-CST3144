@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 const serverURL = "https://cst3144-backend-drwa.onrender.com";
 const lessons = ref([]);
 const sortAttribute = ref("subject");
@@ -39,14 +39,31 @@ const fetchLessons = async () => {
   }
 };
 
-// Search and Sort Logic
+//Search logic implemant with backend
+const performSearch = async (query) => {
+  try {
+    const response = await fetch(`${serverURL}/search?q=${query}`);
+    if (!response.ok) throw new Error("Failed to search");
+    const data = await response.json();
+    lessons.value = data; // Update the list with ONLY the matching results
+  } catch (error) {
+    console.error("Error searching lessons:", error);
+  }
+};
+
+watch(searchQuery, (newQuery) => {
+  if (newQuery.trim().length > 0) {
+    // If there is text, go to the backend to filter
+    performSearch(newQuery);
+  } else {
+    // If text is cleared, fetch all lessons again
+    fetchLessons();
+  }
+});
+
+// Sort Logic
 const filteredLessons = computed(() => {
-  let tempLessons = lessons.value.filter((lesson) => {
-    return (
-      lesson.subject.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      lesson.location.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  });
+  let tempLessons = lessons.value;
 
   tempLessons = tempLessons.sort((a, b) => {
     if (sortOrder.value === "asc") {
@@ -154,6 +171,15 @@ const isFormValid = computed(() => {
   return nameRegex.test(checkoutForm.value.name) && phoneRegex.test(checkoutForm.value.phone);
 });
 
+// Helper function to determine badge color
+const getAvailabilityColor = (spaces) => {
+    if (spaces === 0) return 'bg-gray-400 text-gray-800'; // Sold Out
+    if (spaces < 3) return 'bg-red-400 text-red-900'; // Low Stock
+    if (spaces < 5) return 'bg-yellow-400 text-yellow-900'; // Med Stock
+    return 'bg-green-400 text-green-900'; // Good Stock
+};
+
+
 onMounted(() => {
   fetchLessons();
 });
@@ -166,7 +192,8 @@ onMounted(() => {
     <!-- HEADER -->
     <header class="flex flex-col md:flex-row justify-between items-center mb-10 bg-[#FFD700] p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-xl">
       <h1 class="text-4xl font-black text-black tracking-tighter uppercase transform -rotate-2">
-        <i class="fas fa-shapes mr-3 text-white text-shadow-black"></i>After School Club
+
+        <i class="fas fa-shapes mr-3 text-white text-shadow-black"></i>After School HUB
       </h1>
       
       <button 
@@ -177,7 +204,7 @@ onMounted(() => {
           <i class="fas fa-arrow-left mr-2"></i> GO BACK
         </span>
         <span v-else>
-          <i class="fas fa-shopping-basket mr-2"></i> MY BASKET ({{ cart.length }})
+          <i class="fas fa-shopping-basket mr-2"></i> SHOPPING CART ({{ cart.length }})
         </span>
       </button>
     </header>
@@ -190,12 +217,12 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <!-- Search -->
           <div class="flex flex-col">
-            <label class="font-black text-black mb-2 uppercase">Find a class:</label>
+            <label class="font-black text-black mb-2 uppercase">Search:</label>
             <input 
               v-model="searchQuery" 
               type="text" 
               class="border-4 border-black p-3 rounded-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 font-bold"
-              placeholder="e.g. Math, London...">
+              placeholder="Search by Subject or Location...">
           </div>
           
           <!-- Sort -->
@@ -240,13 +267,13 @@ onMounted(() => {
           <div class="relative z-10 space-y-3 mb-6 font-bold text-gray-700">
             <p><i class="fas fa-map-pin mr-2 text-red-500"></i> {{ lesson.location }}</p>
             <p><i class="fas fa-pound-sign mr-2 text-green-600"></i> {{ lesson.price }}</p>
-            <div class="flex items-center">
+                  <div class="flex items-center mt-2">
                 <i class="fas fa-users mr-2 text-blue-500"></i>
-                <div class="w-full bg-gray-200 rounded-full h-4 border-2 border-black">
-                    <div class="bg-blue-500 h-full rounded-full border-r-2 border-black" 
-                         :style="{ width: (lesson.spaces / 5) * 100 + '%' }"></div>
-                </div>
-                <span class="ml-2">{{ lesson.spaces }} left</span>
+                <span class="px-3 py-1 rounded-full border-2 border-black font-black text-sm uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                      :class="getAvailabilityColor(lesson.spaces)">
+                    <span v-if="lesson.spaces === 0">Sold Out</span>
+                    <span v-else>{{ lesson.spaces }} Spaces Left</span>
+                </span>
             </div>
           </div>
 
@@ -313,7 +340,7 @@ onMounted(() => {
           @click="submitOrder" 
           :disabled="!isFormValid || cart.length === 0"
           class="w-full bg-black text-white py-4 rounded-lg font-black text-xl hover:bg-gray-800 disabled:bg-gray-500 border-4 border-white transition-all">
-          PLACE ORDER
+          CHECKOUT
         </button>
          <p v-if="!isFormValid" class="text-red-600 font-bold text-sm mt-3 bg-white p-2 border-2 border-black rounded">
           * Name: Letters only<br>* Phone: Numbers only
